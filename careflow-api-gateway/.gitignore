@@ -1,0 +1,16 @@
+target/
+*.log
+
+### IDEs ###
+.idea/
+.vscode/
+.classpath
+.project
+.settings/
+*.iws
+*.iml
+*.ipr
+
+### OS files ###
+.DS_Store
+Thumbs.db

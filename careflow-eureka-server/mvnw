@@ -1,0 +1,48 @@
+#!/bin/sh
+
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements. See the NOTICE file
+# distributed with this work for additional information.
+# The ASF licenses this file to you under the Apache License, Version 2.0.
+
+set -e
+
+BASE_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+PROPERTIES="$BASE_DIR/.mvn/wrapper/maven-wrapper.properties"
+
+distribution_url=$(sed -n 's/^distributionUrl=//p' "$PROPERTIES")
+distribution_file=${distribution_url##*/}
+distribution_name=${distribution_file%.zip}
+distribution_name=${distribution_name%-bin}
+MAVEN_HOME="$HOME/.m2/wrapper/dists/$distribution_name"
+MAVEN_BIN="$MAVEN_HOME/bin/mvn"
+
+if [ ! -x "$MAVEN_BIN" ]; then
+  archive="$MAVEN_HOME/$distribution_file"
+  mkdir -p "$MAVEN_HOME"
+
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL "$distribution_url" -o "$archive"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q "$distribution_url" -O "$archive"
+  else
+    echo "Error: curl or wget is required to download Maven." >&2
+    exit 1
+  fi
+
+  if command -v unzip >/dev/null 2>&1; then
+    unzip -q "$archive" -d "$MAVEN_HOME"
+  else
+    echo "Error: unzip is required to install Maven." >&2
+    exit 1
+  fi
+
+  extracted="$MAVEN_HOME/$distribution_name"
+  if [ -d "$extracted" ]; then
+    mv "$extracted"/* "$MAVEN_HOME"/
+    rmdir "$extracted"
+  fi
+  rm -f "$archive"
+fi
+
+exec "$MAVEN_BIN" "$@"
